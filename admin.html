@@ -1,0 +1,558 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>后台管理 - 个人作品集</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#08080f;--bg2:#0e0e1a;--card:#16162a;--card-hover:#1e1e3a;
+  --text:#e8e8f0;--text2:#9090b0;--accent:#a855f7;--accent2:#06b6d4;
+  --gradient:linear-gradient(135deg,var(--accent),var(--accent2));
+  --danger:#ff4757;--warning:#ffa502;--success:#2ed573;
+  --radius:12px;--radius-sm:8px;--transition:0.2s ease;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);line-height:1.6}
+.login-overlay{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+.login-box{background:var(--card);padding:2.5rem;border-radius:var(--radius);width:100%;max-width:400px;text-align:center;border:1px solid rgba(255,255,255,0.08)}
+.login-box h2{font-size:1.5rem;margin-bottom:0.5rem}
+.login-box p{color:var(--text2);font-size:0.85rem;margin-bottom:1.5rem}
+.login-box input{width:100%;padding:12px 16px;border-radius:var(--radius-sm);background:var(--bg2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:0.95rem;margin-bottom:0.75rem;outline:none;transition:var(--transition)}
+.login-box input:focus{border-color:var(--accent)}
+.login-box button{width:100%;padding:12px;border-radius:var(--radius-sm);background:var(--gradient);color:#fff;border:none;font-size:0.95rem;cursor:pointer;transition:var(--transition);font-family:inherit}
+.login-box button:hover{opacity:0.9}
+.login-err{color:var(--danger);font-size:0.8rem;margin-top:0.5rem;display:none}
+.admin-layout{display:none;max-width:1400px;margin:0 auto;padding:1.5rem}
+.admin-layout.active{display:block}
+.admin-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;padding-bottom:1rem;border-bottom:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;gap:0.75rem}
+.admin-header h1{font-size:1.4rem}
+.admin-header h1 span{background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.header-actions{display:flex;gap:0.5rem;flex-wrap:wrap}
+.btn{padding:8px 18px;border-radius:20px;border:none;cursor:pointer;font-size:0.85rem;transition:var(--transition);font-family:inherit;display:inline-flex;align-items:center;gap:6px;text-decoration:none;color:#fff}
+.btn-primary{background:var(--gradient)}
+.btn-primary:hover{opacity:0.9}
+.btn-outline{background:transparent;color:var(--text2);border:1px solid rgba(255,255,255,0.15)}
+.btn-outline:hover{border-color:var(--accent);color:var(--text)}
+.btn-danger{background:rgba(255,71,87,0.15);color:var(--danger)}
+.btn-danger:hover{background:var(--danger);color:#fff}
+.btn-sm{padding:4px 12px;font-size:0.78rem}
+.admin-tabs{display:flex;gap:0.5rem;margin-bottom:1.5rem}
+.tab-btn{padding:8px 20px;border-radius:20px;border:none;background:transparent;color:var(--text2);cursor:pointer;font-size:0.85rem;transition:var(--transition);font-family:inherit}
+.tab-btn.active{background:var(--accent);color:#fff}
+.items-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+.item-card{background:var(--card);border-radius:var(--radius);padding:1.2rem;border:1px solid rgba(255,255,255,0.05);transition:var(--transition)}
+.item-card:hover{border-color:rgba(168,85,247,0.2)}
+.item-card h4{font-size:1rem;margin-bottom:0.3rem}
+.item-card .meta{font-size:0.78rem;color:var(--text2);margin-bottom:0.5rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap}
+.item-card .meta .type-badge{padding:2px 8px;border-radius:10px;background:rgba(168,85,247,0.15);color:var(--accent)}
+.item-card .desc{font-size:0.82rem;color:var(--text2);overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.item-card .card-actions{display:flex;gap:0.4rem;margin-top:0.75rem}
+.form-panel{background:var(--card);border-radius:var(--radius);padding:1.5rem;border:1px solid rgba(255,255,255,0.08);margin-bottom:1.5rem;display:none}
+.form-panel.active{display:block}
+.form-panel h3{margin-bottom:1rem;font-size:1.1rem}
+.form-row{display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap}
+.form-group{flex:1;min-width:200px}
+.form-group label{display:block;font-size:0.82rem;color:var(--text2);margin-bottom:0.3rem}
+.form-group input,.form-group textarea,.form-group select{width:100%;padding:10px 14px;border-radius:var(--radius-sm);background:var(--bg2);border:1px solid rgba(255,255,255,0.1);color:var(--text);font-size:0.9rem;outline:none;transition:var(--transition);font-family:inherit;resize:vertical}
+.form-group input:focus,.form-group textarea:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group textarea{min-height:80px}
+.form-group select{appearance:none;cursor:pointer}
+.form-group select option{background:var(--bg2);color:var(--text)}
+.checkbox-group{display:flex;align-items:center;gap:0.5rem;margin-top:0.5rem}
+.checkbox-group input[type="checkbox"]{width:18px;height:18px;accent-color:var(--accent)}
+.upload-area{border:2px dashed rgba(255,255,255,0.15);border-radius:var(--radius-sm);padding:1.5rem;text-align:center;cursor:pointer;transition:var(--transition);background:var(--bg2);margin-bottom:0.5rem}
+.upload-area:hover{border-color:var(--accent);background:rgba(168,85,247,0.05)}
+.upload-area p{color:var(--text2);font-size:0.85rem}
+.thumb-preview{display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.75rem}
+.thumb-preview .preview-item{position:relative;width:80px;height:60px;border-radius:6px;overflow:hidden}
+.thumb-preview .preview-item img{width:100%;height:100%;object-fit:cover}
+.preview-item .remove-preview{position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:var(--danger);color:#fff;border:none;font-size:10px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.video-preview-item{position:relative;width:160px;height:90px;border-radius:6px;overflow:hidden;background:#000}
+.video-preview-item video{width:100%;height:100%;object-fit:cover}
+.toast{position:fixed;bottom:2rem;right:2rem;z-index:500;padding:12px 24px;border-radius:25px;background:var(--success);color:#fff;font-size:0.9rem;transform:translateY(100px);opacity:0;transition:0.3s ease}
+.toast.show{transform:translateY(0);opacity:1}
+.toast.error{background:var(--danger)}
+.form-hint{font-size:0.75rem;color:var(--text2);margin-top:0.25rem}
+@media(max-width:700px){.admin-header{flex-direction:column;align-items:flex-start}.items-grid{grid-template-columns:1fr}.form-row{flex-direction:column}}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-overlay" id="login-overlay">
+  <div class="login-box">
+    <h2>🔐 后台管理</h2>
+    <p>请输入管理密码（默认: admin123）</p>
+    <input type="password" id="login-password" placeholder="密码">
+    <button id="login-btn">登 录</button>
+    <p class="login-err" id="login-err">密码错误，请重试</p>
+  </div>
+</div>
+
+<!-- Admin -->
+<div class="admin-layout" id="admin-layout">
+  <div class="admin-header">
+    <h1>🎬 <span>作品管理</span></h1>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm" id="btn-site-settings">⚙ 站点设置</button>
+      <button class="btn btn-outline btn-sm" id="btn-change-pw">🔑 改密码</button>
+      <a href="index.html" class="btn btn-outline btn-sm" target="_blank">👁 预览</a>
+      <button class="btn btn-outline btn-sm" id="btn-reset">🔄 重置</button>
+      <button class="btn btn-outline btn-sm" id="btn-logout">🚪 退出</button>
+    </div>
+  </div>
+
+  <div class="admin-tabs">
+    <button class="tab-btn active" data-tab="items">📦 作品列表</button>
+    <button class="tab-btn" data-tab="add">➕ 添加作品</button>
+  </div>
+
+  <!-- Item Form -->
+  <div class="form-panel" id="form-panel">
+    <h3 id="form-title">添加作品</h3>
+    <input type="hidden" id="edit-id">
+    <div class="form-row">
+      <div class="form-group"><label>作品标题 *</label><input id="f-title" placeholder="输入作品名称"></div>
+      <div class="form-group"><label>分类 *</label><input id="f-category" placeholder="如：漫剧、概念设计" list="category-list"><datalist id="category-list"></datalist></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>作品类型 *</label><select id="f-type"><option value="video">🎬 视频类</option><option value="image">🖼 图片集类</option></select></div>
+      <div class="form-group"><label>外链地址</label><input id="f-videoUrl" placeholder="原视频链接"></div>
+    </div>
+    <div class="form-group"><label>作品描述</label><textarea id="f-description" placeholder="描述你的作品..."></textarea></div>
+    <div id="video-source-group">
+      <div class="form-group"><label>视频来源</label><select id="f-video-source"><option value="embed">🔗 嵌入链接</option><option value="upload">📁 上传视频文件</option></select></div>
+      <div class="form-group" id="embed-url-group"><label>嵌入链接</label><input id="f-embedUrl" placeholder="iframe src 地址"><p class="form-hint">任意平台的嵌入播放链接</p></div>
+      <div class="form-group" id="video-upload-group" style="display:none"><label>上传视频</label><div class="upload-area" id="video-upload-area"><p>🎥 点击或拖拽上传（MP4/WebM）</p><input type="file" id="video-input" accept="video/mp4,video/webm" style="display:none"></div><div class="thumb-preview" id="video-preview"></div></div>
+    </div>
+    <div class="form-group"><label>封面图</label><div class="upload-area" id="thumb-upload-area"><p>📷 点击或拖拽上传</p><input type="file" id="thumb-input" accept="image/*" style="display:none"></div><div class="thumb-preview" id="thumb-preview"></div></div>
+    <div class="form-group" id="images-group"><label>图片集</label><div class="upload-area" id="images-upload-area"><p>🖼 点击或拖拽上传（可多选）</p><input type="file" id="images-input" accept="image/*" multiple style="display:none"></div><div class="thumb-preview" id="images-preview"></div></div>
+    <div class="form-group"><label>标签（逗号分隔）</label><input id="f-tags" placeholder="如：AI生成,科幻,原创"></div>
+    <div class="checkbox-group"><input type="checkbox" id="f-featured"><label for="f-featured">🔥 设为精选作品</label></div>
+    <div style="margin-top:1rem;display:flex;gap:0.75rem">
+      <button class="btn btn-primary" id="btn-save-item">💾 保存</button>
+      <button class="btn btn-outline" id="btn-cancel-edit">取消</button>
+    </div>
+  </div>
+
+  <!-- Site Settings -->
+  <div class="form-panel" id="site-form">
+    <h3>站点设置</h3>
+    <div class="form-row">
+      <div class="form-group"><label>主页大标题</label><input id="s-main-title" placeholder="个人作品集"><p class="form-hint">页面最上方居中的醒目大字</p></div>
+      <div class="form-group"><label>宣传标语 (Slogan)</label><input id="s-slogan" placeholder="用 AI 重新定义漫剧创作"><p class="form-hint">大标题下方的斜体文案</p></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>你的名字</label><input id="s-name"></div>
+      <div class="form-group"><label>副标题</label><input id="s-title"></div>
+    </div>
+    <div class="form-group"><label>个人头像</label><div class="upload-area" id="avatar-upload-area"><p>📷 点击或拖拽上传头像</p><input type="file" id="avatar-input" accept="image/*" style="display:none"></div><div class="thumb-preview" id="avatar-preview"></div></div>
+    <div class="form-group"><label>个人简介</label><textarea id="s-bio" rows="3"></textarea></div>
+    <div class="form-group"><label>背景音乐 (BGM)</label><div class="upload-area" id="bgm-upload-area"><p>🎵 点击或拖拽上传音频文件（MP3/WAV/OGG）</p><input type="file" id="bgm-input" accept="audio/mp3,audio/wav,audio/ogg,audio/mpeg" style="display:none"></div><div class="thumb-preview" id="bgm-preview"></div></div>
+    <div class="form-row">
+      <div class="form-group" style="flex:1"><label>默认音量</label><input type="range" id="s-bgm-volume" min="0" max="100" value="30" style="width:100%"><span style="font-size:0.75rem;color:var(--text2)" id="bgm-volume-label">30%</span></div>
+    </div>
+    <div class="form-group"><label>技能标签（逗号分隔）</label><input id="s-skills" placeholder="Midjourney, Runway, Pika, ElevenLabs..."><p class="form-hint">关于我区域的浮动彩色标签</p></div>
+    <div class="form-group">
+      <label>社交链接（可自由增删）</label>
+      <div id="social-links-list" style="display:flex;flex-direction:column;gap:0.5rem;margin-top:0.5rem"></div>
+      <button class="btn btn-outline btn-sm" id="btn-add-social" style="margin-top:0.5rem">➕ 添加链接</button>
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-top:1rem">
+      <button class="btn btn-primary" id="btn-save-site">💾 保存设置</button>
+      <button class="btn btn-outline" id="btn-cancel-site">取消</button>
+    </div>
+  </div>
+
+  <!-- Password -->
+  <div class="form-panel" id="password-form">
+    <h3>修改密码</h3>
+    <div class="form-row">
+      <div class="form-group"><label>当前密码</label><input type="password" id="p-old"></div>
+      <div class="form-group"><label>新密码</label><input type="password" id="p-new"></div>
+    </div>
+    <div style="display:flex;gap:0.75rem">
+      <button class="btn btn-primary" id="btn-save-pw">💾 保存</button>
+      <button class="btn btn-outline" id="btn-cancel-pw">取消</button>
+    </div>
+  </div>
+
+  <!-- Items -->
+  <div class="items-grid" id="items-grid"></div>
+  <p style="text-align:center;color:var(--text2);margin-top:1rem;display:none" id="empty-msg">还没有作品，点击上方"添加作品"开始创作</p>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script src="data.js"></script>
+<script>
+// ========== State ==========
+var editThumbData = null;
+var editImagesData = [];
+var editVideoData = null;
+var socialLinksEditing = [];
+var editAvatarData = null;
+var editBgmData = null;
+var editBgmVolume = 30;
+
+// ========== Helpers ==========
+function escHtml(s) { if (!s) return ""; return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;"); }
+function showToast(msg, type) { var t = document.getElementById("toast"); t.textContent = msg; t.className = "toast " + (type||"") + " show"; setTimeout(function() { t.classList.remove("show"); }, 2500); }
+function readFileAsDataURL(file, cb) { var r = new FileReader(); r.onload = function(e) { cb(e.target.result); }; r.readAsDataURL(file); }
+
+// ========== Auth ==========
+function doLogin() {
+  var pw = document.getElementById("login-password").value;
+  if (adminLogin(pw)) {
+    document.getElementById("login-overlay").style.display = "none";
+    document.getElementById("admin-layout").classList.add("active");
+    initAdmin();
+  } else {
+    document.getElementById("login-err").style.display = "block";
+  }
+}
+function doLogout() { adminLogout(); location.reload(); }
+
+// ========== Init ==========
+function initAdmin() {
+  loadDataAsync().then(function() {
+    renderItemsList();
+    updateCategoryDatalist();
+    bindAllEvents();
+  });
+}
+
+// Auto-login
+if (isAdminLoggedIn()) {
+  document.getElementById("login-overlay").style.display = "none";
+  document.getElementById("admin-layout").classList.add("active");
+  initAdmin();
+}
+
+// Login button always bound
+document.getElementById("login-btn").addEventListener("click", doLogin);
+document.getElementById("login-password").addEventListener("keydown", function(e) { if (e.key === "Enter") doLogin(); });
+
+// ========== All Event Bindings (called once after login) ==========
+function bindAllEvents() {
+  // Header
+  byId("btn-logout").onclick = doLogout;
+  byId("btn-site-settings").onclick = showSiteForm;
+  byId("btn-change-pw").onclick = showPasswordForm;
+  byId("btn-reset").onclick = resetData;
+
+  // Tabs
+  document.querySelectorAll(".tab-btn").forEach(function(btn) {
+    btn.onclick = function() { switchTab(this.getAttribute("data-tab"), this); };
+  });
+
+  // Item form
+  byId("btn-save-item").onclick = saveItem;
+  byId("btn-cancel-edit").onclick = cancelEdit;
+  byId("f-type").onchange = function() {
+    var type = this.value;
+    byId("video-source-group").style.display = type === "video" ? "" : "none";
+    byId("images-group").style.display = type === "image" ? "" : "none";
+  };
+  byId("f-video-source").onchange = function() {
+    var src = this.value;
+    byId("embed-url-group").style.display = src === "embed" ? "" : "none";
+    byId("video-upload-group").style.display = src === "upload" ? "" : "none";
+  };
+
+  // Site form
+  byId("btn-save-site").onclick = saveSiteInfo;
+  byId("btn-cancel-site").onclick = hideSiteForm;
+  byId("btn-add-social").onclick = addSocialLink;
+  byId("s-bgm-volume").oninput = function() { editBgmVolume = parseInt(this.value); byId("bgm-volume-label").textContent = editBgmVolume + "%"; };
+
+  // Password form
+  byId("btn-save-pw").onclick = changePassword;
+  byId("btn-cancel-pw").onclick = hidePasswordForm;
+
+  // Uploads
+  setupUpload("thumb");
+  setupUpload("images");
+  setupUpload("video");
+  setupUpload("avatar");
+  setupUpload("bgm");
+}
+
+function byId(id) { return document.getElementById(id); }
+
+function setupUpload(type) {
+  var area = byId(type + "-upload-area");
+  var input = byId(type + "-input");
+  if (!area || !input) return;
+  area.onclick = function() { input.click(); };
+  input.onchange = function() {
+    if (type === "thumb") handleThumbUpload(this);
+    else if (type === "images") handleImagesUpload(this);
+    else if (type === "video") handleVideoUpload(this);
+    else if (type === "avatar") handleAvatarUpload(this);
+    else if (type === "bgm") handleBgmUpload(this);
+  };
+  // Drag & drop
+  area.addEventListener("dragover", function(e) { e.preventDefault(); area.style.borderColor = "var(--accent)"; });
+  area.addEventListener("dragleave", function(e) { e.preventDefault(); area.style.borderColor = ""; });
+  area.addEventListener("drop", function(e) {
+    e.preventDefault(); area.style.borderColor = "";
+    var files = Array.from(e.dataTransfer.files);
+    if (type === "thumb") {
+      var f = files.find(function(x) { return x.type.startsWith("image/"); });
+      if (f) readFileAsDataURL(f, function(r) { editThumbData = r; renderThumbPreview(); });
+    } else if (type === "images") {
+      var imgs = files.filter(function(x) { return x.type.startsWith("image/"); });
+      var loaded = 0;
+      imgs.forEach(function(f) { readFileAsDataURL(f, function(r) { editImagesData.push(r); loaded++; if (loaded === imgs.length) renderImagesPreview(); }); });
+    } else if (type === "video") {
+      var vf = files.find(function(x) { return x.type.startsWith("video/"); });
+      if (vf) readFileAsDataURL(vf, function(r) { editVideoData = r; renderVideoPreview(); });
+    } else if (type === "avatar") {
+      var af = files.find(function(x) { return x.type.startsWith("image/"); });
+      if (af) readFileAsDataURL(af, function(r) { editAvatarData = r; renderAvatarPreview(); });
+    } else if (type === "bgm") {
+      var bf = files.find(function(x) { return x.type.startsWith("audio/"); });
+      if (bf) readFileAsDataURL(bf, function(r) { editBgmData = r; renderBgmPreview(); });
+    }
+  });
+}
+
+// ========== Tabs ==========
+function switchTab(tab, btn) {
+  document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+  if (btn) btn.classList.add("active");
+  if (tab === "add") {
+    cancelEdit();
+    byId("form-panel").classList.add("active");
+    byId("form-title").textContent = "添加作品";
+    byId("edit-id").value = "";
+  } else {
+    byId("form-panel").classList.remove("active");
+  }
+}
+
+// ========== Items List ==========
+function renderItemsList() {
+  var items = getItems();
+  var grid = byId("items-grid");
+  var empty = byId("empty-msg");
+  if (items.length === 0) { grid.innerHTML = ""; empty.style.display = "block"; return; }
+  empty.style.display = "none";
+  grid.innerHTML = items.map(function(item) {
+    var srcLabel = item.type === "video" ? (item.videoData ? "📁 本地视频" : (item.embedUrl ? "🔗 嵌入" : "🎬 视频")) : "";
+    return '<div class="item-card"><h4>' + (item.featured?"🔥 ":"") + escHtml(item.title) + '</h4>'
+      + '<div class="meta"><span class="type-badge">' + (item.type==="video"?"🎬 视频":"🖼 图片集") + '</span>'
+      + '<span>📂 ' + escHtml(item.category) + '</span><span>' + srcLabel + '</span></div>'
+      + '<div class="desc">' + escHtml(item.description||"无描述") + '</div>'
+      + '<div class="card-actions">'
+      + '<button class="btn btn-primary btn-sm edit-btn" data-id="' + item.id + '">✏️ 编辑</button>'
+      + '<button class="btn btn-danger btn-sm del-btn" data-id="' + item.id + '">🗑 删除</button>'
+      + '</div></div>';
+  }).join("");
+  grid.querySelectorAll(".edit-btn").forEach(function(b) { b.onclick = function() { editItem(this.getAttribute("data-id")); }; });
+  grid.querySelectorAll(".del-btn").forEach(function(b) { b.onclick = function() { deleteItemConfirm(this.getAttribute("data-id")); }; });
+}
+
+// ========== Edit/Cancel ==========
+function editItem(id) {
+  var item = getItemById(id); if (!item) return;
+  byId("edit-id").value = item.id;
+  byId("f-title").value = item.title || "";
+  byId("f-category").value = item.category || "";
+  byId("f-type").value = item.type || "video";
+  byId("f-videoUrl").value = item.videoUrl || "";
+  byId("f-embedUrl").value = item.embedUrl || "";
+  byId("f-description").value = item.description || "";
+  byId("f-tags").value = (item.tags||[]).join(", ");
+  byId("f-featured").checked = item.featured || false;
+  editThumbData = item.thumbnail || null;
+  editImagesData = item.images || [];
+  editVideoData = item.videoData || null;
+  byId("f-video-source").value = item.videoSource || (item.videoData ? "upload" : "embed");
+  // Trigger type/source change
+  byId("f-type").onchange();
+  byId("f-video-source").onchange();
+  renderThumbPreview(); renderImagesPreview(); renderVideoPreview();
+  byId("form-panel").classList.add("active");
+  byId("form-title").textContent = "编辑作品";
+  document.querySelectorAll(".tab-btn").forEach(function(b) { b.classList.remove("active"); });
+  document.querySelector(".tab-btn[data-tab='items']").classList.add("active");
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+
+function cancelEdit() {
+  byId("form-panel").classList.remove("active");
+  byId("edit-id").value = "";
+  ["f-title","f-category","f-videoUrl","f-embedUrl","f-description","f-tags"].forEach(function(id) { byId(id).value = ""; });
+  byId("f-type").value = "video"; byId("f-video-source").value = "embed";
+  byId("f-featured").checked = false;
+  editThumbData = null; editImagesData = []; editVideoData = null;
+  byId("thumb-preview").innerHTML = "";
+  byId("images-preview").innerHTML = "";
+  byId("video-preview").innerHTML = "";
+  byId("f-type").onchange(); byId("f-video-source").onchange();
+}
+
+// ========== Save/Delete Item ==========
+function saveItem() {
+  var title = byId("f-title").value.trim();
+  var category = byId("f-category").value.trim();
+  if (!title) { showToast("请输入作品标题","error"); return; }
+  if (!category) { showToast("请输入分类","error"); return; }
+  var id = byId("edit-id").value;
+  var videoSource = byId("f-video-source").value;
+  var data = {
+    title: title, category: category, type: byId("f-type").value,
+    description: byId("f-description").value.trim(),
+    videoUrl: byId("f-videoUrl").value.trim(),
+    embedUrl: videoSource === "embed" ? byId("f-embedUrl").value.trim() : "",
+    videoData: videoSource === "upload" ? editVideoData : null,
+    videoSource: videoSource,
+    thumbnail: editThumbData, images: editImagesData,
+    tags: byId("f-tags").value.split(",").map(function(t){return t.trim()}).filter(Boolean),
+    featured: byId("f-featured").checked
+  };
+  if (id) { updateItem(id, data); showToast("✅ 作品已更新"); }
+  else { addItem(data); showToast("✅ 作品已添加"); }
+  cancelEdit(); renderItemsList(); updateCategoryDatalist();
+}
+
+function deleteItemConfirm(id) {
+  if (confirm("确定删除？")) { deleteItem(id); renderItemsList(); updateCategoryDatalist(); showToast("🗑 已删除"); }
+}
+
+// ========== Upload Handlers ==========
+function handleThumbUpload(input) { var f = input.files[0]; if (f) readFileAsDataURL(f, function(r) { editThumbData = r; renderThumbPreview(); }); }
+function handleImagesUpload(input) {
+  var files = Array.from(input.files); var loaded = 0;
+  files.forEach(function(f) { readFileAsDataURL(f, function(r) { editImagesData.push(r); loaded++; if (loaded === files.length) renderImagesPreview(); }); });
+}
+function handleVideoUpload(input) { var f = input.files[0]; if (f) { if (f.size > 100*1024*1024) { showToast("视频不超过100MB","error"); return; } readFileAsDataURL(f, function(r) { editVideoData = r; renderVideoPreview(); }); } }
+
+function renderThumbPreview() {
+  var c = byId("thumb-preview");
+  if (!editThumbData) { c.innerHTML = ""; return; }
+  c.innerHTML = '<div class="preview-item"><img src="' + editThumbData + '" alt=""><button class="remove-preview" onclick="editThumbData=null;renderThumbPreview()">✕</button></div>';
+}
+function renderImagesPreview() {
+  var c = byId("images-preview");
+  if (editImagesData.length === 0) { c.innerHTML = ""; return; }
+  c.innerHTML = editImagesData.map(function(img, i) {
+    return '<div class="preview-item"><img src="' + img + '" alt=""><button class="remove-preview" onclick="editImagesData.splice('+i+',1);renderImagesPreview()">✕</button></div>';
+  }).join("");
+}
+function renderVideoPreview() {
+  var c = byId("video-preview");
+  if (!editVideoData) { c.innerHTML = ""; return; }
+  c.innerHTML = '<div class="video-preview-item"><video src="' + editVideoData + '" controls></video><button class="remove-preview" onclick="editVideoData=null;renderVideoPreview()">✕</button></div>';
+}
+
+function handleBgmUpload(input) {
+  var f = input.files[0]; if (!f) return;
+  if (f.size > 20 * 1024 * 1024) { showToast("音频文件不超过20MB", "error"); return; }
+  readFileAsDataURL(f, function(r) { editBgmData = r; renderBgmPreview(); });
+}
+function renderBgmPreview() {
+  var c = byId("bgm-preview");
+  if (!editBgmData) { c.innerHTML = ""; return; }
+  c.innerHTML = '<div class="preview-item" style="width:auto;padding:6px 12px;display:flex;align-items:center;gap:8px"><span>🎵</span><span style="font-size:0.8rem">BGM 已上传</span><audio src="' + editBgmData + '" controls style="height:24px;width:200px"></audio><button class="remove-preview" onclick="editBgmData=null;renderBgmPreview()" style="position:static">✕</button></div>';
+}
+
+function renderAvatarPreview() {
+  var c = byId("avatar-preview");
+  if (!editAvatarData) { c.innerHTML = ""; return; }
+  c.innerHTML = "<div class=\"preview-item\"><img src=\"" + editAvatarData + "\" alt=\"\"><button class=\"remove-preview\" onclick=\"editAvatarData=null;renderAvatarPreview()\">✕</button></div>";
+}
+function handleAvatarUpload(input) { var f = input.files[0]; if (f) readFileAsDataURL(f, function(r) { editAvatarData = r; renderAvatarPreview(); }); }
+
+// ========== Site Info ==========
+function showSiteForm() {
+  var info = getSiteInfo();
+  byId("s-main-title").value = info.mainTitle || "个人作品集";
+  byId("s-slogan").value = info.slogan || "";
+  byId("s-name").value = info.name || "";
+  byId("s-title").value = info.title || "";
+  byId("s-bio").value = info.bio || "";
+  editAvatarData = info.avatar || null;
+  editBgmData = info.bgmData || null;
+  editBgmVolume = (info.bgmVolume != null ? info.bgmVolume : 30);
+  byId("s-skills").value = (info.skillTags || []).join(", ");
+  socialLinksEditing = JSON.parse(JSON.stringify(info.socialLinks || []));
+  renderAvatarPreview();
+  renderBgmPreview();
+  byId("s-bgm-volume").value = editBgmVolume;
+  byId("bgm-volume-label").textContent = editBgmVolume + "%";
+  hidePasswordForm();
+  renderSocialLinksEditor();
+  byId("site-form").classList.add("active");
+  window.scrollTo({ top:0, behavior:"smooth" });
+}
+function hideSiteForm() { byId("site-form").classList.remove("active"); }
+
+function saveSiteInfo() {
+  try {
+    updateSiteInfo({
+      mainTitle: byId("s-main-title").value.trim(),
+      slogan: byId("s-slogan").value.trim(),
+      name: byId("s-name").value.trim(),
+      title: byId("s-title").value.trim(),
+      bio: byId("s-bio").value.trim(),
+      avatar: editAvatarData,
+      skillTags: byId("s-skills").value.split(",").map(function(t){return t.trim()}).filter(Boolean),
+      bgmData: editBgmData,
+      bgmVolume: editBgmVolume,
+      socialLinks: socialLinksEditing
+    });
+    hideSiteForm();
+    showToast("✅ 站点设置已保存");
+  } catch(e) {
+    showToast("保存失败: " + e.message, "error");
+  }
+}
+
+function renderSocialLinksEditor() {
+  var container = byId("social-links-list");
+  container.innerHTML = socialLinksEditing.map(function(link, i) {
+    return '<div class="form-row" style="margin-bottom:0;align-items:center">'
+      + '<div class="form-group" style="flex:0 0 60px"><input value="' + escHtml(link.icon||"") + '" data-idx="' + i + '" data-field="icon" placeholder="图标" style="text-align:center;font-size:1.1rem"></div>'
+      + '<div class="form-group" style="flex:1"><input value="' + escHtml(link.platform||"") + '" data-idx="' + i + '" data-field="platform" placeholder="平台名称"></div>'
+      + '<div class="form-group" style="flex:2"><input value="' + escHtml(link.url||"") + '" data-idx="' + i + '" data-field="url" placeholder="链接地址"></div>'
+      + '<button class="btn btn-danger btn-sm" style="flex-shrink:0;margin-top:4px" onclick="socialLinksEditing.splice('+i+',1);renderSocialLinksEditor()">✕</button>'
+      + '</div>';
+  }).join("");
+  container.querySelectorAll("input").forEach(function(input) {
+    input.addEventListener("input", function() {
+      var idx = parseInt(this.getAttribute("data-idx"));
+      var field = this.getAttribute("data-field");
+      if (socialLinksEditing[idx]) socialLinksEditing[idx][field] = this.value;
+    });
+  });
+}
+
+function addSocialLink() { socialLinksEditing.push({ platform:"", url:"", icon:"🔗" }); renderSocialLinksEditor(); }
+
+// ========== Password ==========
+function showPasswordForm() { hideSiteForm(); byId("p-old").value = ""; byId("p-new").value = ""; byId("password-form").classList.add("active"); }
+function hidePasswordForm() { byId("password-form").classList.remove("active"); }
+function changePassword() {
+  var o = byId("p-old").value; var n = byId("p-new").value;
+  if (!n) { showToast("请输入新密码","error"); return; }
+  if (changeAdminPassword(o, n)) { hidePasswordForm(); showToast("✅ 密码已修改"); }
+  else { showToast("当前密码错误","error"); }
+}
+
+// ========== Reset ==========
+function resetData() {
+  if (confirm("确定重置所有数据为默认值吗？")) { resetToDefaults(); renderItemsList(); updateCategoryDatalist(); showToast("🔄 已重置"); }
+}
+
+// ========== Helpers ==========
+function updateCategoryDatalist() {
+  var cats = getCategories();
+  byId("category-list").innerHTML = cats.map(function(c) { return '<option value="' + escHtml(c) + '">'; }).join("");
+}
+</script>
+</body>
+</html>

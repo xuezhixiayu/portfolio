@@ -1,0 +1,44 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>DB Inspector</title>
+<style>body{font-family:sans-serif;padding:2rem;background:#111;color:#eee}pre{background:#222;padding:1rem;border-radius:8px;overflow:auto;max-height:400px}</style></head>
+<body>
+<h2>Portfolio DB 内容检查</h2>
+<button onclick="check()">🔍 检查 DB 内容</button>
+<button onclick="clearDB()">🗑 清空 DB</button>
+<button onclick="checkLS()">📋 检查 localStorage</button>
+<pre id="out"></pre>
+<script>
+function check() {
+  var req = indexedDB.open("portfolio_db", 2);
+  req.onsuccess = function(e) {
+    var db = e.target.result;
+    var tx = db.transaction("portfolio_store", "readonly");
+    var r = tx.objectStore("portfolio_store").get("portfolio_data");
+    r.onsuccess = function() {
+      if (r.result) {
+        var d = r.result;
+        document.getElementById("out").textContent = 
+          "✅ 数据存在\n站点名: " + d.siteInfo.name + 
+          "\n作品数: " + d.items.length +
+          "\n头像: " + (d.siteInfo.avatar ? d.siteInfo.avatar.substring(0,50)+"..." : "无") +
+          "\nBGM: " + (d.siteInfo.bgmData ? d.siteInfo.bgmData.substring(0,50)+"..." : "无") +
+          "\n社交链接: " + JSON.stringify(d.siteInfo.socialLinks, null, 2) +
+          "\n\n总大小: " + (JSON.stringify(d).length / 1024).toFixed(1) + " KB";
+      } else {
+        document.getElementById("out").textContent = "⚠️ DB 中无数据";
+      }
+    };
+  };
+}
+function clearDB() {
+  indexedDB.deleteDatabase("portfolio_db");
+  document.getElementById("out").textContent = "🗑 DB 已删除";
+}
+function checkLS() {
+  var raw = localStorage.getItem("portfolio_data");
+  document.getElementById("out").textContent = raw ? 
+    "localStorage 有数据 (" + (raw.length/1024).toFixed(1) + " KB)" :
+    "localStorage 无数据";
+}
+</script>
+</body></html>

@@ -1,0 +1,37 @@
+﻿<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><title>Storage Test</title>
+<style>body{font-family:sans-serif;padding:2rem;background:#111;color:#eee}
+.pass{color:#2ed573}.fail{color:#ff4757}</style></head>
+<body>
+<h2>IndexedDB 测试</h2>
+<div id="log"></div>
+<script>
+var log = document.getElementById("log");
+function add(msg, cls) { log.innerHTML += '<p class="'+cls+'">'+msg+'</p>'; }
+
+// Test 1: Open DB
+var req = indexedDB.open("test_db", 1);
+req.onupgradeneeded = function(e) { e.target.result.createObjectStore("test"); };
+req.onsuccess = function(e) {
+  add("✅ IndexedDB 连接成功", "pass");
+  var db = e.target.result;
+  
+  // Test 2: Write
+  var tx = db.transaction("test", "readwrite");
+  var store = tx.objectStore("test");
+  var putReq = store.put({ name: "test", time: Date.now() }, "key1");
+  putReq.onsuccess = function() { add("✅ 写入成功", "pass"); };
+  putReq.onerror = function() { add("❌ 写入失败: " + putReq.error, "fail"); };
+  tx.oncomplete = function() { add("✅ 事务提交成功", "pass"); readBack(db); };
+  tx.onerror = function() { add("❌ 事务失败: " + tx.error, "fail"); };
+};
+req.onerror = function(e) { add("❌ IndexedDB 不可用: " + e.target.error, "fail"); };
+
+function readBack(db) {
+  var tx = db.transaction("test", "readonly");
+  var req = tx.objectStore("test").get("key1");
+  req.onsuccess = function() { add("✅ 读取成功: " + JSON.stringify(req.result), "pass"); };
+  req.onerror = function() { add("❌ 读取失败", "fail"); };
+}
+</script>
+</body></html>
