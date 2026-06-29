@@ -98,6 +98,7 @@ function loadDataSync() {
       return _dataCache;
     }
   } catch(e) {}
+  try { if (typeof EMBEDDED_DATA !== "undefined" && EMBEDDED_DATA) { _dataCache = JSON.parse(JSON.stringify(EMBEDDED_DATA)); return _dataCache; } } catch(e){}
   _dataCache = JSON.parse(JSON.stringify(DEFAULT_DATA));
   return _dataCache;
 }
@@ -127,6 +128,7 @@ function loadDataAsync() {
         return data;
       }
     } catch(e) {}
+    try { if (typeof EMBEDDED_DATA !== "undefined" && EMBEDDED_DATA) { _dataCache = JSON.parse(JSON.stringify(EMBEDDED_DATA)); dbWrite(DATA_KEY, _dataCache); return _dataCache; } } catch(e){}
     _dataCache = JSON.parse(JSON.stringify(DEFAULT_DATA));
     dbWrite(DATA_KEY, _dataCache);
     return _dataCache;
