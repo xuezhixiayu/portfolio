@@ -2,6 +2,7 @@
 var DB_NAME = "portfolio_db";
 var STORE_NAME = "portfolio_store";
 var DATA_KEY = "portfolio_data";
+var DATA_VER_KEY = "portfolio_data_version";
 var ADMIN_KEY = "portfolio_admin_pass";
 var DEFAULT_PASSWORD = "admin123";
 
@@ -139,7 +140,7 @@ function saveData(data) {
   _dataCache = data;
   _dataLoaded = true;
   return dbWrite(DATA_KEY, data).then(function() {
-    try { localStorage.setItem("portfolio_data_version", Date.now().toString()); } catch(e) {}
+    try { localStorage.setItem("portfolio_data_version", "v2"); } catch(e) {}
   }).catch(function(e) {
     console.error("IndexedDB write failed:", e);
     // Fallback: try to save to localStorage
