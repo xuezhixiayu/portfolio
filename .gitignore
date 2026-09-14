@@ -1,0 +1,15 @@
+# Local configuration and credentials
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Local logs, generated archives and dependencies
+*.log
+*.zip
+node_modules/
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
